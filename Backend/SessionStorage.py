@@ -42,7 +42,7 @@ class SessionStorage:
         if len(self.sessions) < 4000:
             for e in self.sessions:
                 if u in e:
-                    Logger.log('Collision')
+                    Logger.warn('Collision')
                     return self.generateUniqueUrl()
             Logger.log('No collision')
             return u
@@ -62,7 +62,7 @@ class SessionStorage:
             ids = self.generateUniqueIds()
             self.sessions.extend([[url, ids, Game()]])
         else:
-            Logger.log(url['error'])
+            Logger.error(url['error'])
             return False
         return dumps({'uniqueurl': url})
 
@@ -108,7 +108,7 @@ class SessionStorage:
             if self.sessions[i][0] == int(uniqueurl):
                 Logger.log('Game {0} exists'.format(uniqueurl))
                 return i
-        Logger.log('Game {0} doesn\'t exist'.format(uniqueurl))
+        Logger.warn('Game {0} doesn\'t exist'.format(uniqueurl))
         return None
     
     #
@@ -120,13 +120,13 @@ class SessionStorage:
     def move(self, uniqueid, uniqueurl, move):
         i = self.gameExists(uniqueurl)
         if i is not None:
-            Logger.log('kk')
+            Logger.dbg('kk')
             if self.sessions[i][1][self.sessions[i][2].playerTurn] == int(uniqueid):
-                Logger.log('kkkk')
+                Logger.dbg('kkkk')
                 res = self.sessions[i][2].doMove(move)
-                Logger.log(res)
+                Logger.dbg(res)
                 return res
             else:
-                Logger.log('nnn')
+                Logger.dbg('nnn')
         else:
-            Logger.log('eeeeredfd')
+            Logger.dbg('eeeeredfd')

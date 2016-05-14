@@ -1,5 +1,5 @@
 from inspect import getframeinfo, stack
-
+from termcolor import cprint
 #
 # Classe qui s'occupe du logging
 #
@@ -13,11 +13,11 @@ class Logger:
     #
     @staticmethod
     def printCurrentState(gameState):
-        print('\n\n-----GAME STATE-----\n')
-        print('{0} active sessions'.format(len(gameState)))
+        cprint('\n\n-----GAME STATE-----\n', 'cyan')
+        cprint('{0} active sessions'.format(len(gameState)), 'cyan')
         for i in gameState:
-            print('Session url : {0} - Session player ids : {1}'.format(i[0], i[1]))
-        print('\n--------------------\n\n')
+            cprint('Session url : {0} - Session player ids : {1}'.format(i[0], i[1]), 'cyan')
+        cprint('\n--------------------\n\n', 'cyan')
 
     #
     # DONE
@@ -32,27 +32,31 @@ class Logger:
         if '\\' in path:
             path = path.split('\\')[-1]
         line = caller[1]
-        print('{0}:{1} - {2}'.format(path, line, message))
+        cprint('{0}:{1} - {2}'.format(path, line, message), 'magenta')
+    
+    @staticmethod
+    def warn(message):
+        caller = getframeinfo(stack()[1][0])
+        path = caller[0]
+        if '\\' in path:
+            path = path.split('\\')[-1]
+        line = caller[1]
+        cprint('{0}:{1} - {2}'.format(path, line, message), 'yellow')
         
+    @staticmethod
+    def error(message):
+        caller = getframeinfo(stack()[1][0])
+        path = caller[0]
+        if '\\' in path:
+            path = path.split('\\')[-1]
+        line = caller[1]
+        cprint('{0}:{1} - {2}'.format(path, line, message), 'red')
         
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
+    @staticmethod
+    def dbg(message):
+        caller = getframeinfo(stack()[1][0])
+        path = caller[0]
+        if '\\' in path:
+            path = path.split('\\')[-1]
+        line = caller[1]
+        cprint('{0}:{1} - {2}'.format(path, line, message), 'red', 'on_white')
