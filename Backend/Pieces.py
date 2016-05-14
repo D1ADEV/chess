@@ -183,3 +183,35 @@ class Rook:
             arr.append([self.x, self.y + i])
             arr.append([self.x, self.y - i])
         return arr
+class Queen:
+	def __init__(self, joueur, x, y):
+		self.x = x
+		self.y = y
+		self.joueur = joueur
+		self.__name__ = 'Q'
+		
+	def canAccessPosition(self, newX, newY):
+		if 1 <= self.x <= 8 and 1 <= self.y <= 8 and 1 <= newX <= 8 and 1 <= newY <= 8: #Verifie que c'est dans l'echequier
+			if [newX, newY] in self.getAvailablePositions(): #Verifie la disponibilite avec l'autre fonction, grace a l'inventaire
+				return True
+			else:
+				return False
+		else:
+			return False
+	def getAvailablePositions(self):
+		arr = []
+		for i in range(0, 9):
+			arr.append([self.x + i, self.y])
+			arr.append([self.x - i, self.y])
+			arr.append([self.x, self.y + i])
+			arr.append([self.x, self.y - i])
+		for i in range(-8, 8):
+			if 1 <= (self.x +i) <= 8 and 1 <= (self.y +i) <= 8 and i != 0:  # Diag de haut gauche a bas droit
+				#print('self.x : ' + str(self.x + i) + ' self.y : ' + str(y + i))
+				arr.append([self.x + i, self.y + i])
+			if 1 <= (self.x -i) <= 8 and 1 <= (self.y +i) <= 8 and i != 0:  # Diag haut droit bas gauche
+				#print('2 : X : ' + str(x - i) + ' Y : ' + str(y + i))
+				arr.append([self.x - i, self.y + i])
+		return arr
+		
+		
