@@ -1,3 +1,38 @@
+from Math import Math
+from Logger import Logger
+
+class Piece(object):
+    def canAccessPosition(self, newX, newY):
+        raise NotImplementedError
+    
+    def getAvailablePositions(self):
+        raise NotImplementedError
+        
+    def canMoveTo(self, x, y, board):
+        vector = Math.getVectorFromCoordinates(self.x, self.y, x, y)
+        vector.prt()
+        
+        validPieces = [pc for pc in board 
+            if pc.__name__ != "E" and not self == pc]
+        
+        collinearPieces = [pc for pc in validPieces
+            if Math.areCollinear(Math.getVectorFromCoordinates(pc.x, pc.y, x, y), vector)]
+        
+        for i in collinearPieces:
+            Logger.dbg('{0} - {1} - {2}'.format(i.__name__, i.x, i.y))
+        
+        onTheWay = [pc for pc in collinearPieces 
+            if Math.isInTheInterval(self.x, x, pc.x) and Math.isInTheInterval(self.y, y, pc.y)]
+        
+        for i in onTheWay:
+            Logger.dbg('{0} - {1} - {2}'.format(i.__name__, i.x, i.y))
+            
+        if len(onTheWay) == 0:
+            return True
+        else:
+            return False
+            
+
 class NoPiece:
 
     def __init__(self, x, y):
@@ -7,7 +42,7 @@ class NoPiece:
         self.__name__ = 'E'
 
 
-class Pawn:
+class Pawn(Piece):
 
     def __init__(self, joueur, x, y):
         self.x = x
@@ -52,7 +87,7 @@ class Pawn:
         return arr
 
 
-class King:
+class King(Piece):
 
     def __init__(self, joueur, x, y):
         self.x = x
@@ -85,7 +120,7 @@ class King:
         return arr
 
 
-class Knight:
+class Knight(Piece):
      def __init__(self, joueur, x, y):
         self.x = x
         self.y = y
@@ -122,7 +157,7 @@ class Knight:
         return arr
 
 
-class Bishop:
+class Bishop(Piece):
 
      def __init__(self, joueur, x, y):
         self.x = x
@@ -155,7 +190,7 @@ class Bishop:
         return arr
 
 
-class Rook:
+class Rook(Piece):
 
      def __init__(self, joueur, x, y):
         self.x = x
@@ -183,7 +218,9 @@ class Rook:
             arr.append([self.x, self.y + i])
             arr.append([self.x, self.y - i])
         return arr
-class Queen:
+        
+        
+class Queen(Piece):
 	def __init__(self, joueur, x, y):
 		self.x = x
 		self.y = y

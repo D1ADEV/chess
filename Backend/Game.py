@@ -5,7 +5,6 @@ from Logger import Logger
 import json
 
 class Game:
-
     #
     # DONE
     # Initialisation de la partie
@@ -51,9 +50,9 @@ class Game:
             NoPiece(3, 6),
             Pawn(1, 3, 7),
             Bishop(1, 3, 8),
-            Queen(0, 4, 1),
+            NoPiece(4, 1),
             Pawn(0, 4, 2),
-            NoPiece(4, 3),
+            Queen(0, 4, 3),
             NoPiece(4, 4),
             NoPiece(4, 5),
             NoPiece(4, 6),
@@ -109,15 +108,22 @@ class Game:
     #
     def updateBoard(self, move):
         oldPieceIndex = self.getPieceIndex(move['oldX'], move['oldY'])
+        newPieceIndex = self.getPieceIndex(move['x'], move['y'])
+        
         oldPiece = self.board[oldPieceIndex]
-        Logger.log(oldPiece.__name__)
-        tempBoard = self.board
-        for i in range(len(self.board)):
-            if self.board[i].x == move['x'] and self.board[i].y == move['y']:
-                if isinstance(self.board[oldPieceIndex], Pawn):
-                    self.board[i] = Pawn(move['id'], move['x'], move['y'])
-                    self.board[oldPieceIndex] = NoPiece(move['oldX'], move['oldY'])
-                    
+        newPiece = self.board[newPieceIndex]
+        
+        Logger.dbg(oldPiece.__name__)
+        Logger.dbg(newPiece.__name__)
+        
+        tempBoard = list(self.board)
+        
+        tempBoard[oldPieceIndex] = NoPiece(self.board[oldPieceIndex].x, self.board[oldPieceIndex].y)
+        tempBoard[newPieceIndex] = type(self.board[oldPieceIndex])(self.board[oldPieceIndex].joueur, self.board[oldPieceIndex].x, self.board[oldPieceIndex].y) # python is ok with me doing that
+        
+        self.board = tempBoard
+        
+        
                 
     #
     # DONE
@@ -161,7 +167,7 @@ class Game:
     # DONE
     # Renvoie l'index d'une pièce en fonction de son x et y
     # Args : x, y de la pièce
-    # Return : index de la pièce si elle est dans le tableau, False 
+    # Return : index de la pièce si elle est dans le tableau, False sinon
     #
     def getPieceIndex(self, x, y):
         for i in range(len(self.board)):
@@ -176,12 +182,25 @@ class Game:
     # Return : Sais pas encore (pas fini)
     #
     def doMove(self, move):
-       #Logger.log(move)
-        r = self.isSpaceOccupied(move['x'], move['y'])
-        if r is True:
-            return 'space taken'
-        elif isinstance(r, int):
-            self.updateBoard(move)
+        Logger.dbg(move)
+        Logger.dbg(type(move))
+        
+        pieceIndex = self.getPieceIndex(move['oldX'], move['oldY'])
+        if pieceIndex is not False:
+            Logger.dbg(self.board[pieceIndex])
+            piece = self.board[pieceIndex]
+            if piece.canAccessPosition(move['x'], move['y']):
+                Logger.dbg('Piece can access position')
+                Logger.dbg('Now checking if it can move through')
+                canMove = piece.canMoveTo(move['x'], move['y'], self.board)
+                if canMove:
+                    Logger.dbg('ok, moving')
+                    self.updateBoard(move)
+            else:
+                Logger.dbg('nope')
+                
+                
+        
     #
     # DONE
     # Renvoie une représentation JSON du tableau contenant les pièces
@@ -190,17 +209,23 @@ class Game:
     #
     def getState(self):
         resData = {}
-        tempBoard = self.board
+        tempBoard = list(self.getBoard()) # Sehr important, sinon modifier tempBoard modifiera self.board, parceque Python. 
         for i in range(len(tempBoard)):
             if type(tempBoard[i]) is not str and type(tempBoard[i]) is not list:
                 tempBoard[i] = [tempBoard[i].__name__, tempBoard[i].joueur]
-        
         resData['board'] = tempBoard
         resData['playerTurn'] = self.playerTurn
         resData['ready'] = self.ready
         return resData
  
- 
+    
+            
+            
+            
+            
+            
+            
+            
  
  
  
