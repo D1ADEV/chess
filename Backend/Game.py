@@ -16,6 +16,7 @@ class Game:
         self.players = 0
         self.board = []
         self.playerTurn = 0
+        self.eatenPieces = []
         self.initBoard()
 
     #
@@ -50,9 +51,9 @@ class Game:
             NoPiece(3, 6),
             Pawn(1, 3, 7),
             Bishop(1, 3, 8),
-            NoPiece(4, 1),
+            Queen(0, 4, 1),
             Pawn(0, 4, 2),
-            Queen(0, 4, 3),
+            NoPiece(4, 3),
             NoPiece(4, 4),
             NoPiece(4, 5),
             NoPiece(4, 6),
@@ -119,7 +120,9 @@ class Game:
         tempBoard = list(self.board)
         
         tempBoard[oldPieceIndex] = NoPiece(self.board[oldPieceIndex].x, self.board[oldPieceIndex].y)
-        tempBoard[newPieceIndex] = type(self.board[oldPieceIndex])(self.board[oldPieceIndex].joueur, self.board[oldPieceIndex].x, self.board[oldPieceIndex].y) # python is ok with me doing that
+        tempBoard[newPieceIndex] = type(self.board[oldPieceIndex])(
+            self.board[oldPieceIndex].joueur, self.board[newPieceIndex].x, self.board[newPieceIndex].y)
+            # python is ok with me doing that
         
         self.board = tempBoard
         
@@ -179,26 +182,31 @@ class Game:
     # TODO
     # S'occupe de bouger les pièces sur l'échiquier 
     # Args : move (JSON?) pas fini donc pas sur
-    # Return : Sais pas encore (pas fini)
+    # Return : Aucun
     #
     def doMove(self, move):
         Logger.dbg(move)
-        Logger.dbg(type(move))
-        
         pieceIndex = self.getPieceIndex(move['oldX'], move['oldY'])
         if pieceIndex is not False:
-            Logger.dbg(self.board[pieceIndex])
-            piece = self.board[pieceIndex]
-            if piece.canAccessPosition(move['x'], move['y']):
-                Logger.dbg('Piece can access position')
-                Logger.dbg('Now checking if it can move through')
-                canMove = piece.canMoveTo(move['x'], move['y'], self.board)
-                if canMove:
-                    Logger.dbg('ok, moving')
-                    self.updateBoard(move)
+            if self.board[pieceIndex].joueur == self.playerTurn:
+                piece = self.board[pieceIndex]
+                if piece.canAccessPosition(move['x'], move['y']):
+                    canMove = piece.canMoveTo(move['x'], move['y'], self.board)
+                    if canMove:
+                        Logger.dbg('ay')
+                        self.updateBoard(move)
+                        self.playerTurn = 0 if self.playerTurn == 1 else 1
+                        return self.getState()
+                    else:
+                        Logger.dbg('There\'s a piece on the path')
+                        return {'error': 'Piece on the path'}
+                else:
+                    Logger.dbg('nope')
+                    return {'error': 'Piece can\'t go there'}
             else:
-                Logger.dbg('nope')
-                
+                Logger.dbg('not his piece')
+                return {'error': 'this piece doesn\'t belong to you'}
+            
                 
         
     #
@@ -218,8 +226,13 @@ class Game:
         resData['ready'] = self.ready
         return resData
  
-    
-            
+    #
+    # Todo
+    #
+    def checkIntegrity(self):
+        errors = {'missingPieces': False, 'coordinatesError': False}
+        errors['missingPieces'] = ((len([x for x in self.board if x.__name__ != "E"]) + len(self.eatenPieces)) == 32)
+        return errors
             
             
             

@@ -5,7 +5,7 @@ var turn = -1; // Tour en cours
 var url = -1;
 var id = -1;
 var ready = false;
-
+var game = {};
 
 /*
 DONE 
@@ -23,7 +23,7 @@ var processClick = function(x, y){
         else{
             if(oldPos[0] != x || oldPos[1] != y){
                 console.log('sending');
-                sendMove(oldPos[0], oldPos[1], x, y);   
+                sendMove(oldPos[0], oldPos[1], x, y);
             }
             else{
                 console.log('canceling');
@@ -66,6 +66,15 @@ var sendMove = function(oldX, oldY, x, y){
     console.log(array);
     $.post('http://localhost:8000/move/' + url + '/' + id, {'move': JSON.stringify(array)}, function(data){
         console.log(data);
+    }).done(function(data){
+        var resp = JSON.parse(data);
+        if(resp.error !== undefined){
+            alert(resp.error);
+        }
+        else{
+            game = JSON.parse(data);
+            $("#b").trigger("render");
+        }
     });
     isDragging = false;
 };
@@ -76,9 +85,6 @@ Fonctions utilisant jquery. Ne sont pas accessibles depuis le DOM
 */
 
 $(function(){
-    
-    var game = {};
-    
     /*
     ONLY FUNCTIONS THAT MATTER
     */
@@ -143,6 +149,12 @@ $(function(){
         createAndJoinGame();
     });
     
+    $("#b").on("render", function(){
+        console.log('ok got something');
+        console.log(game);
+        flushHtml();
+        render();
+    });
     
     /*
     THESE FUNCTIONS ARE 'PRIVATE', AND SHOULDNT BE CALLED

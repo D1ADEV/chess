@@ -9,6 +9,10 @@ class Piece(object):
         raise NotImplementedError
         
     def canMoveTo(self, x, y, board):
+        # This implementation isn't valid for the knight
+        if type(self) == Knight:
+            raise NotImplementedError
+            
         vector = Math.getVectorFromCoordinates(self.x, self.y, x, y)
         vector.prt()
         
@@ -18,19 +22,11 @@ class Piece(object):
         collinearPieces = [pc for pc in validPieces
             if Math.areCollinear(Math.getVectorFromCoordinates(pc.x, pc.y, x, y), vector)]
         
-        for i in collinearPieces:
-            Logger.dbg('{0} - {1} - {2}'.format(i.__name__, i.x, i.y))
-        
         onTheWay = [pc for pc in collinearPieces 
             if Math.isInTheInterval(self.x, x, pc.x) and Math.isInTheInterval(self.y, y, pc.y)]
-        
-        for i in onTheWay:
-            Logger.dbg('{0} - {1} - {2}'.format(i.__name__, i.x, i.y))
             
-        if len(onTheWay) == 0:
-            return True
-        else:
-            return False
+        return True if len(onTheWay) == 0 else False
+            
             
 
 class NoPiece:
@@ -155,6 +151,9 @@ class Knight(Piece):
             arr[i].reverse()
 
         return arr
+        
+     def canMoveTo(self, x, y, board):
+         return (len([pc for pc in board if pc.x == x and pc.y == y and pc.__name__ != "E"]) == 0)
 
 
 class Bishop(Piece):

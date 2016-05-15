@@ -120,16 +120,14 @@ class SessionStorage:
     def move(self, uniqueid, uniqueurl, move):
         i = self.gameExists(uniqueurl)
         if i is not None:
-            Logger.dbg('kk')
             if self.sessions[i][1][self.sessions[i][2].playerTurn] == int(uniqueid):
-                Logger.dbg('kkkk')
                 res = self.sessions[i][2].doMove(move)
                 Logger.dbg(res)
-                return res
+                return dumps(res)
             else:
-                Logger.dbg('nnn')
+                return dumps({'error': 'Not your turn'}) 
         else:
-            Logger.dbg('eeeeredfd')
+            return dumps({'error': 'The game doesn\'t exit on the server anymore, sorry'}) 
 
 
 
