@@ -3,6 +3,7 @@
 from Pieces import *
 from Logger import Logger
 import json
+from time import time
 
 class Game:
     #
@@ -116,9 +117,15 @@ class Game:
         
         Logger.dbg(oldPiece.__name__)
         Logger.dbg(newPiece.__name__)
-        
+                    
         tempBoard = list(self.board)
         
+        if not isinstance(newPiece, NoPiece):
+            Logger.dbg('eating')
+            if oldPiece.canEat(move['x'], move['y']):
+                
+                self.eatenPieces.append(newPiece)
+            
         tempBoard[oldPieceIndex] = NoPiece(self.board[oldPieceIndex].x, self.board[oldPieceIndex].y)
         tempBoard[newPieceIndex] = type(self.board[oldPieceIndex])(
             self.board[oldPieceIndex].joueur, self.board[newPieceIndex].x, self.board[newPieceIndex].y)
@@ -186,6 +193,8 @@ class Game:
     #
     def doMove(self, move):
         Logger.dbg(move)
+        Logger.dbg(self.checkIntegrity())
+        Logger.dbg(self.eatenPieces)
         pieceIndex = self.getPieceIndex(move['oldX'], move['oldY'])
         if pieceIndex is not False:
             if self.board[pieceIndex].joueur == self.playerTurn:
@@ -196,6 +205,11 @@ class Game:
                         Logger.dbg('ay')
                         self.updateBoard(move)
                         self.playerTurn = 0 if self.playerTurn == 1 else 1
+                        resp = self.checkCheck(self.playerTurn)
+                        if resp is True:
+                            Logger.dbg("CHECK")
+                        else:
+                            Logger.dbg("NOT CHECK")
                         return self.getState()
                     else:
                         Logger.dbg('There\'s a piece on the path')
@@ -236,9 +250,29 @@ class Game:
             
             
             
+    def checkCheck(self, player):
+        a = time()
+        piecesNotOwned = [x for x in self.board if x.joueur != player and x.__name__ != "E"]
+        king = [x for x in self.board if x.joueur == player and x.__name__ == "K"][0]
+        for piece in piecesNotOwned:
+            if piece.canAccessPosition(king.x, king.y):
+                if piece.canMoveTo(king.x, king.y, self.board) and piece.canEat(king.x, king.y):
+                    b = time()
+                    Logger.dbg(b - a)
+                    return True
+        b = time()
+        Logger.dbg(b - a)
+        return False
+        
             
-            
-            
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
  
  
  

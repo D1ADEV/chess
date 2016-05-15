@@ -24,10 +24,12 @@ class Piece(object):
         
         onTheWay = [pc for pc in collinearPieces 
             if Math.isInTheInterval(self.x, x, pc.x) and Math.isInTheInterval(self.y, y, pc.y)]
+        
+        return True if len(onTheWay) == 0 or len(onTheWay) == 1 and onTheWay[0].x == x and onTheWay[0].y == y else False
             
-        return True if len(onTheWay) == 0 else False
-            
-            
+    # Over ride that for the Pawn
+    def canEat(self, x, y):
+        return True
 
 class NoPiece:
 
@@ -81,7 +83,17 @@ class Pawn(Piece):
                 arr.append([self.x + 1, self.y - 1])
                 arr.append([self.x - 1, self.y - 1])
         return arr
-
+        
+    def canEat(self, x, y):
+        arr = []
+        if self.joueur == 0:
+            arr.append([self.x + 1, self.y + 1])
+            arr.append([self.x - 1, self.y + 1])
+            return True if [x, y] in arr else False
+        else:
+            arr.append([self.x + 1, self.y - 1])
+            arr.append([self.x - 1, self.y - 1])
+            return True if [x, y] in arr else False
 
 class King(Piece):
 
@@ -105,7 +117,7 @@ class King(Piece):
 
     def getAvailablePositions(self): #Inventaire de toutes les positions valides
         arr = []
-        arr.append([self.x, y - 1])
+        arr.append([self.x, self.y - 1])
         arr.append([self.x + 1, self.y - 1])
         arr.append([self.x + 1, self.y])
         arr.append([self.x + 1, self.y + 1])

@@ -33,7 +33,7 @@ var processClick = function(x, y){
         }   
     }
     else{
-        alert('The game isn\'t ready. Please wait for another player to join, or it is not your turn yet.');
+        alert('The game isn\'t ready / Not your turn');
     }
 };
 
