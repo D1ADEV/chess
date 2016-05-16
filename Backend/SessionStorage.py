@@ -126,7 +126,7 @@ class SessionStorage:
             else:
                 return dumps({'error': 'Not your turn'}) 
         else:
-            return dumps({'error': 'The game doesn\'t exit on the server anymore, sorry'}) 
+            return dumps({'error': 'The game doesn\'t exist on the server anymore, sorry'}) 
             
 
         

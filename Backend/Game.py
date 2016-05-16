@@ -18,6 +18,8 @@ class Game:
         self.board = []
         self.playerTurn = 0
         self.eatenPieces = []
+        self.isCheckMate = False
+        self.winner = -1
         self.initBoard()
 
     #
@@ -47,12 +49,12 @@ class Game:
             Bishop(0, 3, 1),
             Pawn(0, 3, 2),
             NoPiece(3, 3),
-            Queen(0, 3, 4),
+            NoPiece(3, 4),
             NoPiece(3, 5),
             NoPiece(3, 6),
             Pawn(1, 3, 7),
             Bishop(1, 3, 8),
-            NoPiece(4, 1),
+            Queen(0, 4, 1),
             Pawn(0, 4, 2),
             NoPiece(4, 3),
             NoPiece(4, 4),
@@ -64,10 +66,10 @@ class Game:
             Pawn(0, 5, 2),
             NoPiece(5, 3),
             NoPiece(5, 4),
-            King(1, 5, 5),
+            NoPiece(5, 5),
             NoPiece(5, 6),
             Pawn(1, 5, 7),
-            NoPiece(5, 8),
+            King(1, 5, 8),
             Bishop(0, 6, 1),
             Pawn(0, 6, 2),
             NoPiece(6, 3),
@@ -114,23 +116,22 @@ class Game:
         
         oldPiece = self.board[oldPieceIndex]
         newPiece = self.board[newPieceIndex]
-        
-        Logger.dbg(oldPiece.__name__)
-        Logger.dbg(newPiece.__name__)
                     
         tempBoard = list(self.board)
         
         if not isinstance(newPiece, NoPiece):
-            Logger.dbg('eating')
-            if oldPiece.canEat(move['x'], move['y']):
-                
-                self.eatenPieces.append(newPiece)
-            
-        tempBoard[oldPieceIndex] = NoPiece(self.board[oldPieceIndex].x, self.board[oldPieceIndex].y)
-        tempBoard[newPieceIndex] = type(self.board[oldPieceIndex])(
-            self.board[oldPieceIndex].joueur, self.board[newPieceIndex].x, self.board[newPieceIndex].y)
-            # python is ok with me doing that
-        
+            if not isinstance(newPiece, King):
+                if oldPiece.canEat(move['x'], move['y']) and oldPiece.joueur != newPiece.joueur:
+                    self.eatenPieces.append(newPiece)
+                    tempBoard[oldPieceIndex] = NoPiece(self.board[oldPieceIndex].x, self.board[oldPieceIndex].y)
+                    tempBoard[newPieceIndex] = type(self.board[oldPieceIndex])(
+                        self.board[oldPieceIndex].joueur, self.board[newPieceIndex].x, self.board[newPieceIndex].y)
+                        # python is ok with me doing that
+        else:
+            self.eatenPieces.append(newPiece)
+            tempBoard[oldPieceIndex] = NoPiece(self.board[oldPieceIndex].x, self.board[oldPieceIndex].y)
+            tempBoard[newPieceIndex] = type(self.board[oldPieceIndex])(
+                self.board[oldPieceIndex].joueur, self.board[newPieceIndex].x, self.board[newPieceIndex].y)
         return tempBoard
         
         
@@ -202,25 +203,22 @@ class Game:
                         tempBoard = self.updateBoard(move)
                         resp = self.checkCheck(self.playerTurn, tempBoard)
                         if resp is True:
-                            Logger.dbg("CHECK")
                             legalMoves = self.getAllLegalMoves(self.playerTurn)
                             if len(legalMoves) > 0:
-                                return {'error': 'Still check'}
+                                return {'error': 'Check, move something else'}
                             else:
-                                return {'error': 'Check mate batar'}
+                                self.isCheckMate = True
+                                self.winner = 0 if self.playerTurn == 1 else 1
+                                return {'error': 'Check mate'}
                         else:
-                            Logger.dbg("NOT CHECK")
                             self.playerTurn = 0 if self.playerTurn == 1 else 1
                             self.board = tempBoard
                             return self.getState()
                     else:
-                        Logger.dbg('There\'s a piece on the path')
                         return {'error': 'Piece on the path'}
                 else:
-                    Logger.dbg('nope')
                     return {'error': 'Piece can\'t go there'}
             else:
-                Logger.dbg('not his piece')
                 return {'error': 'this piece doesn\'t belong to you'}
             
                 
@@ -240,11 +238,10 @@ class Game:
         resData['board'] = tempBoard
         resData['playerTurn'] = self.playerTurn
         resData['ready'] = self.ready
+        resData['checkmate'] = self.isCheckMate
+        resData['winner'] = self.winner
         return resData
- 
-    #
-    # Todo
-    #
+
     def checkIntegrity(self):
         errors = {'missingPieces': False, 'coordinatesError': False}
         errors['missingPieces'] = ((len([x for x in self.board if x.__name__ != "E"]) + len(self.eatenPieces)) == 32)
@@ -273,10 +270,3 @@ class Game:
                 if not self.checkCheck(player, tempBoard):
                     legalMoves.append(m)
         return legalMoves
- 
- 
- 
- 
- 
- 
- 
