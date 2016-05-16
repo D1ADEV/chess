@@ -8,13 +8,17 @@ class Piece(object):
     def getAvailablePositions(self):
         raise NotImplementedError
         
+    def getPseudoLegalMoves(self):
+        moves = self.getAvailablePositions()
+        return [move for move in moves if 1 <= move[0] <= 8 and 1 <= move[1] <= 8]
+        
     def canMoveTo(self, x, y, board):
         # This implementation isn't valid for the knight
         if type(self) == Knight:
             raise NotImplementedError
             
         vector = Math.getVectorFromCoordinates(self.x, self.y, x, y)
-        vector.prt()
+        #vector.prt()
         
         validPieces = [pc for pc in board 
             if pc.__name__ != "E" and not self == pc]

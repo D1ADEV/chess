@@ -47,12 +47,12 @@ class Game:
             Bishop(0, 3, 1),
             Pawn(0, 3, 2),
             NoPiece(3, 3),
-            NoPiece(3, 4),
+            Queen(0, 3, 4),
             NoPiece(3, 5),
             NoPiece(3, 6),
             Pawn(1, 3, 7),
             Bishop(1, 3, 8),
-            Queen(0, 4, 1),
+            NoPiece(4, 1),
             Pawn(0, 4, 2),
             NoPiece(4, 3),
             NoPiece(4, 4),
@@ -64,10 +64,10 @@ class Game:
             Pawn(0, 5, 2),
             NoPiece(5, 3),
             NoPiece(5, 4),
-            NoPiece(5, 5),
+            King(1, 5, 5),
             NoPiece(5, 6),
             Pawn(1, 5, 7),
-            King(1, 5, 8),
+            NoPiece(5, 8),
             Bishop(0, 6, 1),
             Pawn(0, 6, 2),
             NoPiece(6, 3),
@@ -106,7 +106,7 @@ class Game:
     #
     # Met a jour le tableau contenant les pièces après un mouvement
     # Args : L'index de la pièce qui va bouger
-    # Return : Aucun
+    # Return : nouveau tableau contenant les pièces 
     #
     def updateBoard(self, move):
         oldPieceIndex = self.getPieceIndex(move['oldX'], move['oldY'])
@@ -131,7 +131,7 @@ class Game:
             self.board[oldPieceIndex].joueur, self.board[newPieceIndex].x, self.board[newPieceIndex].y)
             # python is ok with me doing that
         
-        self.board = tempBoard
+        return tempBoard
         
         
                 
@@ -192,9 +192,6 @@ class Game:
     # Return : Aucun
     #
     def doMove(self, move):
-        Logger.dbg(move)
-        Logger.dbg(self.checkIntegrity())
-        Logger.dbg(self.eatenPieces)
         pieceIndex = self.getPieceIndex(move['oldX'], move['oldY'])
         if pieceIndex is not False:
             if self.board[pieceIndex].joueur == self.playerTurn:
@@ -202,15 +199,20 @@ class Game:
                 if piece.canAccessPosition(move['x'], move['y']):
                     canMove = piece.canMoveTo(move['x'], move['y'], self.board)
                     if canMove:
-                        Logger.dbg('ay')
-                        self.updateBoard(move)
-                        self.playerTurn = 0 if self.playerTurn == 1 else 1
-                        resp = self.checkCheck(self.playerTurn)
+                        tempBoard = self.updateBoard(move)
+                        resp = self.checkCheck(self.playerTurn, tempBoard)
                         if resp is True:
                             Logger.dbg("CHECK")
+                            legalMoves = self.getAllLegalMoves(self.playerTurn)
+                            if len(legalMoves) > 0:
+                                return {'error': 'Still check'}
+                            else:
+                                return {'error': 'Check mate batar'}
                         else:
                             Logger.dbg("NOT CHECK")
-                        return self.getState()
+                            self.playerTurn = 0 if self.playerTurn == 1 else 1
+                            self.board = tempBoard
+                            return self.getState()
                     else:
                         Logger.dbg('There\'s a piece on the path')
                         return {'error': 'Piece on the path'}
@@ -250,25 +252,27 @@ class Game:
             
             
             
-    def checkCheck(self, player):
-        a = time()
-        piecesNotOwned = [x for x in self.board if x.joueur != player and x.__name__ != "E"]
-        king = [x for x in self.board if x.joueur == player and x.__name__ == "K"][0]
+    def checkCheck(self, player, board):
+        piecesNotOwned = [x for x in board if x.joueur != player and x.__name__ != "E"]
+        king = [x for x in board if x.joueur == player and x.__name__ == "K"][0]
         for piece in piecesNotOwned:
             if piece.canAccessPosition(king.x, king.y):
-                if piece.canMoveTo(king.x, king.y, self.board) and piece.canEat(king.x, king.y):
-                    b = time()
-                    Logger.dbg(b - a)
+                if piece.canMoveTo(king.x, king.y, board) and piece.canEat(king.x, king.y):
                     return True
-        b = time()
-        Logger.dbg(b - a)
         return False
         
             
- 
- 
- 
- 
+    def getAllLegalMoves(self, player):
+        legalMoves = []
+        pieces = [x for x in self.board if x.__name__ != "E" and x.joueur == player]
+        for piece in pieces:
+            moves = [m for m in piece.getPseudoLegalMoves() if piece.canMoveTo(m[0], m[1], self.board)]
+            for move in moves:
+                m = {"oldX": piece.x, "oldY": piece.y, "x": move[0], "y": move[1]}
+                tempBoard = self.updateBoard(m)
+                if not self.checkCheck(player, tempBoard):
+                    legalMoves.append(m)
+        return legalMoves
  
  
  
