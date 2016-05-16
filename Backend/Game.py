@@ -3,9 +3,9 @@
 from Pieces import *
 from Logger import Logger
 import json
+from time import time
 
 class Game:
-
     #
     # DONE
     # Initialisation de la partie
@@ -17,6 +17,9 @@ class Game:
         self.players = 0
         self.board = []
         self.playerTurn = 0
+        self.eatenPieces = []
+        self.isCheckMate = False
+        self.winner = -1
         self.initBoard()
 
     #
@@ -105,19 +108,33 @@ class Game:
     #
     # Met a jour le tableau contenant les pièces après un mouvement
     # Args : L'index de la pièce qui va bouger
-    # Return : Aucun
+    # Return : nouveau tableau contenant les pièces 
     #
     def updateBoard(self, move):
         oldPieceIndex = self.getPieceIndex(move['oldX'], move['oldY'])
+        newPieceIndex = self.getPieceIndex(move['x'], move['y'])
+        
         oldPiece = self.board[oldPieceIndex]
-        Logger.log(oldPiece.__name__)
-        tempBoard = self.board
-        for i in range(len(self.board)):
-            if self.board[i].x == move['x'] and self.board[i].y == move['y']:
-                if isinstance(self.board[oldPieceIndex], Pawn):
-                    self.board[i] = Pawn(move['id'], move['x'], move['y'])
-                    self.board[oldPieceIndex] = NoPiece(move['oldX'], move['oldY'])
+        newPiece = self.board[newPieceIndex]
                     
+        tempBoard = list(self.board)
+        
+        if not isinstance(newPiece, NoPiece):
+            if not isinstance(newPiece, King):
+                if oldPiece.canEat(move['x'], move['y']) and oldPiece.joueur != newPiece.joueur:
+                    self.eatenPieces.append(newPiece)
+                    tempBoard[oldPieceIndex] = NoPiece(self.board[oldPieceIndex].x, self.board[oldPieceIndex].y)
+                    tempBoard[newPieceIndex] = type(self.board[oldPieceIndex])(
+                        self.board[oldPieceIndex].joueur, self.board[newPieceIndex].x, self.board[newPieceIndex].y)
+                        # python is ok with me doing that
+        else:
+            self.eatenPieces.append(newPiece)
+            tempBoard[oldPieceIndex] = NoPiece(self.board[oldPieceIndex].x, self.board[oldPieceIndex].y)
+            tempBoard[newPieceIndex] = type(self.board[oldPieceIndex])(
+                self.board[oldPieceIndex].joueur, self.board[newPieceIndex].x, self.board[newPieceIndex].y)
+        return tempBoard
+        
+        
                 
     #
     # DONE
@@ -161,7 +178,7 @@ class Game:
     # DONE
     # Renvoie l'index d'une pièce en fonction de son x et y
     # Args : x, y de la pièce
-    # Return : index de la pièce si elle est dans le tableau, False 
+    # Return : index de la pièce si elle est dans le tableau, False sinon
     #
     def getPieceIndex(self, x, y):
         for i in range(len(self.board)):
@@ -173,15 +190,39 @@ class Game:
     # TODO
     # S'occupe de bouger les pièces sur l'échiquier 
     # Args : move (JSON?) pas fini donc pas sur
-    # Return : Sais pas encore (pas fini)
+    # Return : Aucun
     #
     def doMove(self, move):
-       #Logger.log(move)
-        r = self.isSpaceOccupied(move['x'], move['y'])
-        if r is True:
-            return 'space taken'
-        elif isinstance(r, int):
-            self.updateBoard(move)
+        pieceIndex = self.getPieceIndex(move['oldX'], move['oldY'])
+        if pieceIndex is not False:
+            if self.board[pieceIndex].joueur == self.playerTurn:
+                piece = self.board[pieceIndex]
+                if piece.canAccessPosition(move['x'], move['y']):
+                    canMove = piece.canMoveTo(move['x'], move['y'], self.board)
+                    if canMove:
+                        tempBoard = self.updateBoard(move)
+                        resp = self.checkCheck(self.playerTurn, tempBoard)
+                        if resp is True:
+                            legalMoves = self.getAllLegalMoves(self.playerTurn)
+                            if len(legalMoves) > 0:
+                                return {'error': 'Check, move something else'}
+                            else:
+                                self.isCheckMate = True
+                                self.winner = 0 if self.playerTurn == 1 else 1
+                                return {'error': 'Check mate'}
+                        else:
+                            self.playerTurn = 0 if self.playerTurn == 1 else 1
+                            self.board = tempBoard
+                            return self.getState()
+                    else:
+                        return {'error': 'Piece on the path'}
+                else:
+                    return {'error': 'Piece can\'t go there'}
+            else:
+                return {'error': 'this piece doesn\'t belong to you'}
+            
+                
+        
     #
     # DONE
     # Renvoie une représentation JSON du tableau contenant les pièces
@@ -190,17 +231,42 @@ class Game:
     #
     def getState(self):
         resData = {}
-        tempBoard = self.board
+        tempBoard = list(self.getBoard()) # Sehr important, sinon modifier tempBoard modifiera self.board, parceque Python. 
         for i in range(len(tempBoard)):
             if type(tempBoard[i]) is not str and type(tempBoard[i]) is not list:
                 tempBoard[i] = [tempBoard[i].__name__, tempBoard[i].joueur]
-        
         resData['board'] = tempBoard
         resData['playerTurn'] = self.playerTurn
         resData['ready'] = self.ready
+        resData['checkmate'] = self.isCheckMate
+        resData['winner'] = self.winner
         return resData
- 
- 
- 
- 
- 
+
+    def checkIntegrity(self):
+        errors = {'missingPieces': False, 'coordinatesError': False}
+        errors['missingPieces'] = ((len([x for x in self.board if x.__name__ != "E"]) + len(self.eatenPieces)) == 32)
+        return errors
+            
+            
+            
+    def checkCheck(self, player, board):
+        piecesNotOwned = [x for x in board if x.joueur != player and x.__name__ != "E"]
+        king = [x for x in board if x.joueur == player and x.__name__ == "K"][0]
+        for piece in piecesNotOwned:
+            if piece.canAccessPosition(king.x, king.y):
+                if piece.canMoveTo(king.x, king.y, board) and piece.canEat(king.x, king.y):
+                    return True
+        return False
+        
+            
+    def getAllLegalMoves(self, player):
+        legalMoves = []
+        pieces = [x for x in self.board if x.__name__ != "E" and x.joueur == player]
+        for piece in pieces:
+            moves = [m for m in piece.getPseudoLegalMoves() if piece.canMoveTo(m[0], m[1], self.board)]
+            for move in moves:
+                m = {"oldX": piece.x, "oldY": piece.y, "x": move[0], "y": move[1]}
+                tempBoard = self.updateBoard(m)
+                if not self.checkCheck(player, tempBoard):
+                    legalMoves.append(m)
+        return legalMoves

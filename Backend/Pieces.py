@@ -1,3 +1,40 @@
+from Math import Math
+from Logger import Logger
+
+class Piece(object):
+    def canAccessPosition(self, newX, newY):
+        raise NotImplementedError
+    
+    def getAvailablePositions(self):
+        raise NotImplementedError
+        
+    def getPseudoLegalMoves(self):
+        moves = self.getAvailablePositions()
+        return [move for move in moves if 1 <= move[0] <= 8 and 1 <= move[1] <= 8]
+        
+    def canMoveTo(self, x, y, board):
+        # This implementation isn't valid for the knight
+        if type(self) == Knight:
+            raise NotImplementedError
+            
+        vector = Math.getVectorFromCoordinates(self.x, self.y, x, y)
+        #vector.prt()
+        
+        validPieces = [pc for pc in board 
+            if pc.__name__ != "E" and not self == pc]
+        
+        collinearPieces = [pc for pc in validPieces
+            if Math.areCollinear(Math.getVectorFromCoordinates(pc.x, pc.y, x, y), vector)]
+        
+        onTheWay = [pc for pc in collinearPieces 
+            if Math.isInTheInterval(self.x, x, pc.x) and Math.isInTheInterval(self.y, y, pc.y)]
+        
+        return True if len(onTheWay) == 0 or len(onTheWay) == 1 and onTheWay[0].x == x and onTheWay[0].y == y else False
+            
+    # Over ride that for the Pawn
+    def canEat(self, x, y):
+        return True
+
 class NoPiece:
 
     def __init__(self, x, y):
@@ -7,7 +44,7 @@ class NoPiece:
         self.__name__ = 'E'
 
 
-class Pawn:
+class Pawn(Piece):
 
     def __init__(self, joueur, x, y):
         self.x = x
@@ -50,9 +87,19 @@ class Pawn:
                 arr.append([self.x + 1, self.y - 1])
                 arr.append([self.x - 1, self.y - 1])
         return arr
+        
+    def canEat(self, x, y):
+        arr = []
+        if self.joueur == 0:
+            arr.append([self.x + 1, self.y + 1])
+            arr.append([self.x - 1, self.y + 1])
+            return True if [x, y] in arr else False
+        else:
+            arr.append([self.x + 1, self.y - 1])
+            arr.append([self.x - 1, self.y - 1])
+            return True if [x, y] in arr else False
 
-
-class King:
+class King(Piece):
 
     def __init__(self, joueur, x, y):
         self.x = x
@@ -74,7 +121,7 @@ class King:
 
     def getAvailablePositions(self): #Inventaire de toutes les positions valides
         arr = []
-        arr.append([self.x, y - 1])
+        arr.append([self.x, self.y - 1])
         arr.append([self.x + 1, self.y - 1])
         arr.append([self.x + 1, self.y])
         arr.append([self.x + 1, self.y + 1])
@@ -85,7 +132,7 @@ class King:
         return arr
 
 
-class Knight:
+class Knight(Piece):
      def __init__(self, joueur, x, y):
         self.x = x
         self.y = y
@@ -120,9 +167,12 @@ class Knight:
             arr[i].reverse()
 
         return arr
+        
+     def canMoveTo(self, x, y, board):
+         return (len([pc for pc in board if pc.x == x and pc.y == y and pc.__name__ != "E"]) == 0)
 
 
-class Bishop:
+class Bishop(Piece):
 
      def __init__(self, joueur, x, y):
         self.x = x
@@ -155,7 +205,7 @@ class Bishop:
         return arr
 
 
-class Rook:
+class Rook(Piece):
 
      def __init__(self, joueur, x, y):
         self.x = x
@@ -183,7 +233,9 @@ class Rook:
             arr.append([self.x, self.y + i])
             arr.append([self.x, self.y - i])
         return arr
-class Queen:
+        
+        
+class Queen(Piece):
 	def __init__(self, joueur, x, y):
 		self.x = x
 		self.y = y
