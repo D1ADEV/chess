@@ -3,20 +3,28 @@
     background: white;
     border-radius: 3px;
     border-collapse: collapse;
-    top: 20%;
-    height: 60%;
-    width: 90%;
+    height: 800px;
+    width: 800px;
     position: absolute;
-    left: 5%;
     padding: 5px;
-    width: 100% box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
     animation: float 5s infinite;
 }
 
 
+.black{
+    color: white;
+    background-color: black;
+}
+
+.white{
+    color: black;
+    background-color: white;
+}
+
 th {
     color: #D5DDE5;
-    background: #1b1e24;
+    background: gray;
     border-bottom: 4px solid #9ea7af;
     border-right: 1px solid #343a45;
     font-size: 23px;
@@ -63,6 +71,6 @@ td:last-child {
 }
 
 .num {
-    background-color: #1b1e24 !important;
-    color: #D5DDE5;
+    background-color: gray !important;
+    color: white;
 }

@@ -46,6 +46,7 @@ class RequestHandler:
     def handleNewGameRequest(self):
         Logger.log('Handling new game')
         res = self.SessionStorage.addNewSession()
+        
         return res
         
     

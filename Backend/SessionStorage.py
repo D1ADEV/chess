@@ -1,5 +1,6 @@
 from random import randint
 from Game import Game
+from json import dumps
 from Logger import Logger
 
 #
@@ -16,6 +17,7 @@ class SessionStorage:
     #
     def __init__(self):
         self.sessions = [[456, [12, 13], Game()]]
+        self.sessions[0][2].initBoard()
         # sessions : [[uniqueurl, [player1uniqueid, player2uniqueid], Game],
         # [...]]
 
@@ -40,7 +42,7 @@ class SessionStorage:
         if len(self.sessions) < 4000:
             for e in self.sessions:
                 if u in e:
-                    Logger.log('Collision')
+                    Logger.warn('Collision')
                     return self.generateUniqueUrl()
             Logger.log('No collision')
             return u
@@ -51,7 +53,7 @@ class SessionStorage:
     # DONE
     # Crée une nouvelle session
     # Args : Aucun
-    # Return : Aucun
+    # Return : JSON {uniqueurl :
     #
     def addNewSession(self):
         Logger.log('Adding new session')
@@ -60,23 +62,24 @@ class SessionStorage:
             ids = self.generateUniqueIds()
             self.sessions.extend([[url, ids, Game()]])
         else:
-            Logger.log(url['error'])
+            Logger.error(url['error'])
             return False
-        return {'uniqueurl': url}
+        return dumps({'uniqueurl': url})
 
     #
     # DONE
     # Ajoute un joueur à une session
     # Args : un id (url) de partie
-    # Return : Si la partie est libre un id de joueur, sinon False
+    # Return : Si la partie est libre un JSON {'id: id}, sinon False
     #
     def joinGame(self, uniqueurl):
         index = self.gameExists(uniqueurl)
         if index is not False:
             if self.sessions[index][2].playerCanJoin() is True:
                 self.sessions[index][2].join()
-                return self.sessions[index][1][
-                    self.sessions[index][2].players - 1]  # the hard way
+                uid = self.sessions[index][1][self.sessions[index][2].players - 1] # the hard way
+                turn = self.sessions[index][1].index(uid)
+                return dumps({'id': uid, 'turn': turn}) 
             else:
                 return False
         else:
@@ -91,8 +94,8 @@ class SessionStorage:
     def getGameStateJson(self, url):
         index = self.gameExists(url)
         if index is not None:
-            res = self.sessions[index][2].getJson()
-            return res
+            res = self.sessions[index][2].getState()
+            return dumps(res)
 
     #
     # DONE
@@ -102,8 +105,10 @@ class SessionStorage:
     #
     def gameExists(self, uniqueurl):
         for i in range(0, len(self.sessions)):
-            if self.sessions[i][0] == uniqueurl:
+            if self.sessions[i][0] == int(uniqueurl):
+                Logger.log('Game {0} exists'.format(uniqueurl))
                 return i
+        Logger.warn('Game {0} doesn\'t exist'.format(uniqueurl))
         return None
     
     #
@@ -115,10 +120,22 @@ class SessionStorage:
     def move(self, uniqueid, uniqueurl, move):
         i = self.gameExists(uniqueurl)
         if i is not None:
-            if self.sessions[i][1][self.sessions[i][2].playerTurn] == uniqueid:
+            if self.sessions[i][1][self.sessions[i][2].playerTurn] == int(uniqueid):
                 res = self.sessions[i][2].doMove(move)
-                return res
+                return dumps(res)
             else:
-                Logger.log('nnn')
+                return dumps({'error': 'Not your turn'}) 
         else:
-            Logger.log('eeeeredfd')
+            return dumps({'error': 'The game doesn\'t exist on the server anymore, sorry'}) 
+            
+
+        
+        
+        
+        
+        
+        
+        
+
+
+

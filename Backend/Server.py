@@ -6,7 +6,7 @@ from RequestKind import RequestKind
 from Request import Request
 from RequestHandler import RequestHandler
 from Logger import Logger
-
+from flask.ext.cors import CORS
 
 #Classe qui gère l'API REST
 
@@ -24,7 +24,8 @@ class Server:
         self.__name__ = "Server"
         self.RequestHandler = RequestHandler()
         self.app = Flask(__name__)
-        self.app.debug = False
+        self.app.debug = True
+        CORS(self.app)
         self.startListening()
 
     # 
@@ -59,7 +60,6 @@ class Server:
             Logger.printCurrentState(
                 self.RequestHandler.SessionStorage.sessions)
             Logger.log('Received request on /move')
-            Logger.log(uniqueurl)
             res = self.RequestHandler.dispatchRequest(
                 Request(
                     uniqueurl=uniqueurl,
@@ -81,8 +81,8 @@ class Server:
             Logger.log('Received request on /createnewgame')
             res = self.RequestHandler.dispatchRequest(
                 Request(requestKind=RequestKind.CreateNewGameRequest))
-            r = res['uniqueurl']  # NEED TO DO SOME CHEKCING HERE
-            return str(r)
+            Logger.log(res)
+            return str(res)
         #
         # DONE
         # Gère les requètes sur /joingame/uniqueurl
@@ -110,7 +110,7 @@ class Server:
             Logger.log('Received a request on /gameupdate')
             res = self.RequestHandler.dispatchRequest(
                 Request(requestKind=RequestKind.GameUpdateRequest, uniqueurl=uniqueurl))
-            return res
+            return str(res)
         
         # 
         # DONE
@@ -122,6 +122,5 @@ class Server:
         def debug():
             return str(self.RequestHandler.SessionStorage.sessions)
             
-        
 
         self.app.run(host=self.ip, port=self.port)
