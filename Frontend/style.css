@@ -13,13 +13,13 @@
 
 
 .black{
-    color: white;
-    background-color: black;
+    font-size: 40px;
+    color: black;
 }
 
 .white{
-    color: black;
-    background-color: white;
+    font-size: 40px;
+    color: #878787;
 }
 
 th {
@@ -48,22 +48,37 @@ tr {
     border-top: 1px solid #C1C3D1;
     border-bottom: 1px solid #C1C3D1;
     color: #666B85;
-    font-size: 16px;
+    font-size: 20px;
     font-weight: normal;
     text-shadow: 0 1px 1px rgba(256, 256, 256, 0.1);
 }
 
 td {
-    background: #D5DDE5;
+    background: white;
+    height: 50px;
     padding: 20px;
     text-align: center;
     vertical-align: middle;
     font-weight: 300;
-    font-size: 18px;
+    font-size: 20px;
     text-shadow: -1px -1px 1px rgba(0, 0, 0, 0.1);
     border-right: 1px solid #C1C3D1;
     transition: 0.4s;
     font-family: 'Lato', sans-serif;
+}
+
+table{
+    table-layout: fixed;
+    width: 800px;
+    height: 800px;
+}
+
+table tr:nth-child(odd) td:nth-child(even) {
+    background: silver;
+    
+}
+table tr:nth-child(even) td:nth-child(odd) {
+    background: silver;
 }
 
 td:last-child {

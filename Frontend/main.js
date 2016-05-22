@@ -233,9 +233,9 @@ $(function () {
             var index = getIndexFromPosition(y, x);
             if (game.board[index][0] != 'E') {
                 if (game.board[index][1] === 0) {
-                    html += '<td class="white" onclick="processClick(' + x + ', ' + y + ');">' + game.board[index][0] + '</td>'; // (y, x) et pas (x, y). Pourquoi? Je ne sais pas. Mais ça march    
+                    html += '<td class="white" onclick="processClick(' + x + ', ' + y + ');">' + getChar(game.board[index][0])+ '</td>'; // (y, x) et pas (x, y). Pourquoi? Je ne sais pas. Mais ça march    
                 } else {
-                    html += '<td class="black" onclick="processClick(' + x + ', ' + y + ');">' + game.board[index][0] + '</td>'; // (y, x) et pas (x, y). Pourquoi? Je ne sais pas. Mais ça march    
+                    html += '<td class="black" onclick="processClick(' + x + ', ' + y + ');">' + getChar(game.board[index][0]) + '</td>'; // (y, x) et pas (x, y). Pourquoi? Je ne sais pas. Mais ça march    
                 }
 
             } else {
@@ -246,6 +246,50 @@ $(function () {
         html += '</tbody></table></div>';
         $('#b').append(html);
     };
+    
+    var getChar = function(piece, player){
+        if(player == 1){
+            switch(piece){
+                case "K":
+                    return "&#9812;";
+                case "Kn":
+                    return "&#9816;";
+                case "P":
+                    return "&#9817;";
+                case "B":
+                    return "&#9815;";
+                case "R":
+                    return "&#9814;";
+                case "Kn":
+                    return "&#9816;";
+                case "Q":
+                    return "&#9813;";
+                case "E":
+                    return " ";
+            }
+        } 
+        else {
+            switch(piece){
+                case "K":
+                    return "&#9818;";
+                case "Kn":
+                    return "&#9822;";
+                case "P":
+                    return "&#9823;";
+                case "B":
+                    return "&#9821;";
+                case "R":
+                    return "&#9820;";
+                case "Kn":
+                    return "&#9822;";
+                case "Q":
+                    return "&#9819;";
+                case "E":
+                    return " ";
+            }
+            
+        }
+    }
 
 
     /*
