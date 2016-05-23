@@ -16,8 +16,7 @@ class SessionStorage:
     # Return : Aucun
     #
     def __init__(self):
-        self.sessions = [[456, [12, 13], Game()]]
-        self.sessions[0][2].initBoard()
+        self.sessions = []
         # sessions : [[uniqueurl, [player1uniqueid, player2uniqueid], Game],
         # [...]]
 

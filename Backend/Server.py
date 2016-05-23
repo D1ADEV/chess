@@ -24,7 +24,7 @@ class Server:
         self.__name__ = "Server"
         self.RequestHandler = RequestHandler()
         self.app = Flask(__name__)
-        self.app.debug = True
+        self.app.debug = False
         CORS(self.app)
         self.startListening()
 
